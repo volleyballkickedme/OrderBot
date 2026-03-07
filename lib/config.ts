@@ -1,15 +1,15 @@
 export const LOAF_TYPES = [
-  { id: "rustic", label: "Rustic Loaf", price: 10 },
-  { id: "sandwich", label: "Sandwich Loaf", price: 10 },
+  { id: "plain", label: "Plain", price: 10 },
+  { id: "cranberrywalnut", label: "Cranberry & Walnut", price: 10 },
+  { id: "cranberry", label: "Cranberry", price: 10 },
+  { id: "walnut", label: "Walnut", price: 10 },
+  { id: "redyeastwithgojiberries", label: "Red Yeast with Goji Berries", price: 10 },
+  { id: "cinnamonchocolate", label: "Cinnamon Chocolate", price: 10 },
 ] as const;
 
 export const FLAVOURS = [
-  "Plain",
-  "Cranberry & Walnut",
-  "Cranberry",
-  "Walnut",
-  "Red Yeast with Goji Berries",
-  "Cinnamon Chocolate",
+  "Rustic Loaf",
+  "Sandwich Loaf",
 ] as const;
 
 export const DELIVERY_OPTIONS = [

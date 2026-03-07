@@ -15,6 +15,10 @@ function cartKey(loafId: string, flavour: string) {
   return `${loafId}::${flavour}`;
 }
 
+function isValidSgPhone(val: string) {
+  return /^(\+65)?[689]\d{7}$/.test(val.trim().replace(/\s/g, ""));
+}
+
 function buildCartItems(quantities: QuantityMap): CartItem[] {
   const items: CartItem[] = [];
   for (const loaf of LOAF_TYPES) {
@@ -54,7 +58,7 @@ export default function OrderPage() {
   const canSubmit =
     cartItems.length > 0 &&
     name.trim() !== "" &&
-    contact.trim() !== "" &&
+    isValidSgPhone(contact) &&
     file !== null &&
     !submitting;
 
@@ -269,6 +273,11 @@ export default function OrderPage() {
                 required
                 className="w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
               />
+              {contact.trim() !== "" && !isValidSgPhone(contact) && (
+                <p className="text-xs text-red-500 mt-1">
+                  Enter a valid Singapore number (e.g. 91234567 or +6591234567)
+                </p>
+              )}
             </div>
           </section>
 
@@ -347,8 +356,8 @@ export default function OrderPage() {
             <p className="text-center text-xs text-stone-400">
               {cartItems.length === 0
                 ? "Add at least one item to continue"
-                : !name.trim() || !contact.trim()
-                ? "Please fill in your name and contact"
+                : !name.trim() || !isValidSgPhone(contact)
+                ? "Please fill in your name and a valid contact number"
                 : "Please upload your payment screenshot"}
             </p>
           )}

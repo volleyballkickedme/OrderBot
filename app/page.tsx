@@ -285,7 +285,7 @@ export default function OrderPage() {
           <section className="bg-white rounded-2xl shadow-sm p-5">
             <h2 className="text-lg font-semibold text-amber-900 mb-1">Payment Proof</h2>
             <p className="text-stone-500 text-sm mb-4">
-              Please transfer the total amount via PayNow/Bank Transfer, then upload your
+              Please transfer the total amount via PayNow/Bank Transfer to Yvonne Ong (9783 7335), then upload your
               screenshot below.
             </p>
 

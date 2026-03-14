@@ -43,6 +43,8 @@ export default function OrderPage() {
   const [delivery, setDelivery] = useState<DeliveryId>("pickup");
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [address, setAddress] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,13 +56,27 @@ export default function OrderPage() {
   const deliveryOption = DELIVERY_OPTIONS.find((d) => d.id === delivery)!;
   const subtotal = cartItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
   const total = subtotal + deliveryOption.surcharge;
+  const isDelivery = delivery === "standard";
+
+  const minDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    return d.toISOString().split("T")[0];
+  })();
 
   const canSubmit =
     cartItems.length > 0 &&
     name.trim() !== "" &&
     isValidSgPhone(contact) &&
+    deliveryDate !== "" &&
+    (!isDelivery || address.trim() !== "") &&
     file !== null &&
     !submitting;
+
+  function handleDeliveryChange(id: DeliveryId) {
+    setDelivery(id);
+    if (id !== "standard") setAddress("");
+  }
 
   function changeQty(loafId: string, flavour: string, delta: number) {
     const key = cartKey(loafId, flavour);
@@ -90,6 +106,9 @@ export default function OrderPage() {
     formData.append("name", name.trim());
     formData.append("contact", contact.trim());
     formData.append("deliveryMethod", deliveryOption.label);
+    formData.append("deliveryDate", deliveryDate);
+    formData.append("deliveryLabel", isDelivery ? "Delivery Date" : "Pickup Date");
+    if (isDelivery) formData.append("address", address.trim());
     formData.append("total", total.toFixed(2));
     formData.append("items", JSON.stringify(cartItems));
     formData.append("paymentProof", file);
@@ -219,7 +238,7 @@ export default function OrderPage() {
                       name="delivery"
                       value={opt.id}
                       checked={delivery === opt.id}
-                      onChange={() => setDelivery(opt.id)}
+                      onChange={() => handleDeliveryChange(opt.id)}
                       className="accent-amber-600"
                     />
                     <span className="text-stone-700 font-medium">{opt.label}</span>
@@ -279,6 +298,35 @@ export default function OrderPage() {
                 </p>
               )}
             </div>
+            <div>
+              <label className="block text-sm font-medium text-stone-600 mb-1">
+                Preferred {isDelivery ? "Delivery" : "Pickup"} Date
+              </label>
+              <input
+                type="date"
+                value={deliveryDate}
+                min={minDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                required
+                className="w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+              />
+              <p className="text-xs text-stone-400 mt-1">Earliest available: {minDate}</p>
+            </div>
+            {isDelivery && (
+              <div>
+                <label className="block text-sm font-medium text-stone-600 mb-1">
+                  Delivery Address
+                </label>
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Block, street, unit number, postal code"
+                  required
+                  rows={3}
+                  className="w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 resize-none"
+                />
+              </div>
+            )}
           </section>
 
           {/* ── SECTION 4: Payment Proof ── */}
@@ -358,6 +406,10 @@ export default function OrderPage() {
                 ? "Add at least one item to continue"
                 : !name.trim() || !isValidSgPhone(contact)
                 ? "Please fill in your name and a valid contact number"
+                : deliveryDate === ""
+                ? `Please select a ${isDelivery ? "delivery" : "pickup"} date`
+                : isDelivery && address.trim() === ""
+                ? "Please enter your delivery address"
                 : "Please upload your payment screenshot"}
             </p>
           )}

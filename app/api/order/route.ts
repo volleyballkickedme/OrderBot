@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
   const name = formData.get("name");
   const contact = formData.get("contact");
   const deliveryMethod = formData.get("deliveryMethod");
+  const deliveryDate = formData.get("deliveryDate");
+  const deliveryLabel = formData.get("deliveryLabel");
+  const address = formData.get("address"); // only present for delivery orders
   const total = formData.get("total");
   const itemsRaw = formData.get("items");
   const paymentProof = formData.get("paymentProof");
@@ -30,6 +33,8 @@ export async function POST(req: NextRequest) {
     typeof name !== "string" ||
     typeof contact !== "string" ||
     typeof deliveryMethod !== "string" ||
+    typeof deliveryDate !== "string" ||
+    typeof deliveryLabel !== "string" ||
     typeof total !== "string" ||
     typeof itemsRaw !== "string" ||
     !(paymentProof instanceof Blob)
@@ -48,12 +53,16 @@ export async function POST(req: NextRequest) {
     .map((item) => `• ${item.qty}x ${item.loafLabel} (${item.flavour})`)
     .join("\n");
 
+  const addressLine = typeof address === "string" ? `\n🏠 *Address:* ${address}` : "";
+
   const caption =
     `🍞 *New Order Received*\n` +
     `👤 *Customer:* ${name}\n` +
     `📞 *Contact:* ${contact}\n\n` +
     `*Items:*\n${itemLines}\n\n` +
     `🚚 *Method:* ${deliveryMethod}\n` +
+    `📅 *${deliveryLabel}:* ${deliveryDate}` +
+    addressLine + `\n` +
     `💰 *Total Amount:* $${total}`;
 
   // Forward the image to Telegram via sendPhoto

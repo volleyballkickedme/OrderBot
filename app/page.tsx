@@ -147,7 +147,7 @@ export default function OrderPage() {
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🍞</div>
+          <div className="text-4xl mb-2">Simply Sourdough 🍞</div>
           <h1 className="text-2xl font-bold text-amber-900">Place Your Order</h1>
           <p className="text-stone-500 text-sm mt-1">Fresh artisan bread, made with love</p>
         </div>

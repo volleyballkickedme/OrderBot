@@ -49,6 +49,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid items data." }, { status: 400 });
   }
 
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const [year, month, day] = deliveryDate.split("-");
+  const formattedDeliveryDate = `${day} ${monthNames[parseInt(month) - 1]} ${year}`;
+
   const itemLines = items
     .map((item) => `• ${item.qty}x ${item.loafLabel} (${item.flavour})`)
     .join("\n");
@@ -61,7 +65,7 @@ export async function POST(req: NextRequest) {
     `📞 *Contact:* ${contact}\n\n` +
     `*Items:*\n${itemLines}\n\n` +
     `🚚 *Method:* ${deliveryMethod}\n` +
-    `📅 *${deliveryLabel}:* ${deliveryDate}` +
+    `📅 *${deliveryLabel}:* ${formattedDeliveryDate}` +
     addressLine + `\n` +
     `💰 *Total Amount:* $${total}`;
 

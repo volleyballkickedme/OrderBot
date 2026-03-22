@@ -19,6 +19,21 @@ function isValidSgPhone(val: string) {
   return /^(\+65)?[689]\d{7}$/.test(val.trim().replace(/\s/g, ""));
 }
 
+function isAllowedDay(dateStr: string): boolean {
+  if (!dateStr) return false;
+  const day = new Date(dateStr + "T00:00:00").getDay();
+  return [0, 1, 6].includes(day); // 0=Sun, 1=Mon, 6=Sat
+}
+
+function getMinAllowedDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 3);
+  while (![0, 1, 6].includes(d.getDay())) {
+    d.setDate(d.getDate() + 1);
+  }
+  return d.toISOString().split("T")[0];
+}
+
 function buildCartItems(quantities: QuantityMap): CartItem[] {
   const items: CartItem[] = [];
   for (const loaf of LOAF_TYPES) {
@@ -58,17 +73,14 @@ export default function OrderPage() {
   const total = subtotal + deliveryOption.surcharge;
   const isDelivery = delivery === "standard";
 
-  const minDate = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d.toISOString().split("T")[0];
-  })();
+  const minDate = getMinAllowedDate();
 
   const canSubmit =
     cartItems.length > 0 &&
     name.trim() !== "" &&
     isValidSgPhone(contact) &&
     deliveryDate !== "" &&
+    isAllowedDay(deliveryDate) &&
     (!isDelivery || address.trim() !== "") &&
     file !== null &&
     !submitting;
@@ -148,8 +160,7 @@ export default function OrderPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">Simply Sourdough 🍞</div>
-          <h1 className="text-2xl font-bold text-amber-900">Place Your Order</h1>
-          <p className="text-stone-500 text-sm mt-1">Fresh artisan bread, made with love</p>
+          <p className="text-stone-600 text-sm mt-1">Note: Orders are limited to 12 loaves a week on a first come first serve basis</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -158,7 +169,7 @@ export default function OrderPage() {
             <h2 className="text-lg font-semibold text-amber-900 mb-4">Select Your Bread</h2>
             {LOAF_TYPES.map((loaf) => (
               <div key={loaf.id} className="mb-5">
-                <h3 className="font-medium text-stone-700 mb-2">
+                <h3 className="font-bold text-lg text-stone-700 mb-2">
                   {loaf.label}{" "}
                   <span className="text-amber-700 font-normal">${loaf.price}</span>
                 </h3>
@@ -310,7 +321,14 @@ export default function OrderPage() {
                 required
                 className="w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
               />
-              <p className="text-xs text-stone-400 mt-1">Earliest available: {minDate}</p>
+              <p className="text-xs text-stone-400 mt-1">
+                Available on Mon, Sat &amp; Sun only · Earliest: {minDate}
+              </p>
+              {deliveryDate !== "" && !isAllowedDay(deliveryDate) && (
+                <p className="text-xs text-red-500 mt-1">
+                  Please choose a Monday, Saturday, or Sunday
+                </p>
+              )}
             </div>
             {isDelivery && (
               <div>
@@ -406,8 +424,8 @@ export default function OrderPage() {
                 ? "Add at least one item to continue"
                 : !name.trim() || !isValidSgPhone(contact)
                 ? "Please fill in your name and a valid contact number"
-                : deliveryDate === ""
-                ? `Please select a ${isDelivery ? "delivery" : "pickup"} date`
+                : deliveryDate === "" || !isAllowedDay(deliveryDate)
+                ? `Please select a Monday, Saturday, or Sunday for ${isDelivery ? "delivery" : "pickup"}`
                 : isDelivery && address.trim() === ""
                 ? "Please enter your delivery address"
                 : "Please upload your payment screenshot"}

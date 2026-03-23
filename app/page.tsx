@@ -155,7 +155,7 @@ export default function OrderPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">Simply Sourdough 🍞</div>
-          <p className="text-stone-600 text-sm mt-1">Note: Orders are limited to 12 loaves a week on a first come first serve basis</p>
+          <p className="text-stone-600 text-sm mt-1">(Orders are limited to 12 loaves a week on a first come first serve basis)</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

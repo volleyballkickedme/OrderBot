@@ -5,7 +5,7 @@ export const LOAF_TYPES = [
   { id: "cinnamonchocolate", label: "Cinnamon Chocolate", price: 14 },
   { id: "apricotraisin", label: "Apricot & Raisin", price: 14 },
   { id: "walnutapricot", label: "Walnut & Apricot", price: 14 },
-  { id: "matcharaisinalmond", label: "Matcha Raisin & Almond", price: 14 },
+  // { id: "matcharaisinalmond", label: "Matcha Raisin & Almond", price: 14 },
   { id: "olivewalnut", label: "Olive & Walnut", price: 14 },
   { id: "olive", label: "Olive", price: 14 },
   { id: "cranberry", label: "Cranberry", price: 14 },

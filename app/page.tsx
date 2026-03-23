@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Calendar } from "@/components/ui/calendar";
 import {
   LOAF_TYPES,
   FLAVOURS,
@@ -19,20 +20,6 @@ function isValidSgPhone(val: string) {
   return /^(\+65)?[689]\d{7}$/.test(val.trim().replace(/\s/g, ""));
 }
 
-function isAllowedDay(dateStr: string): boolean {
-  if (!dateStr) return false;
-  const day = new Date(dateStr + "T00:00:00").getDay();
-  return [0, 1, 6].includes(day); // 0=Sun, 1=Mon, 6=Sat
-}
-
-function getMinAllowedDate(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 3);
-  while (![0, 1, 6].includes(d.getDay())) {
-    d.setDate(d.getDate() + 1);
-  }
-  return d.toISOString().split("T")[0];
-}
 
 function buildCartItems(quantities: QuantityMap): CartItem[] {
   const items: CartItem[] = [];
@@ -58,7 +45,7 @@ export default function OrderPage() {
   const [delivery, setDelivery] = useState<DeliveryId>("pickup");
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
+  const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined);
   const [address, setAddress] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -73,14 +60,22 @@ export default function OrderPage() {
   const total = subtotal + deliveryOption.surcharge;
   const isDelivery = delivery === "standard";
 
-  const minDate = getMinAllowedDate();
+  const minDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  })();
+
+  const deliveryDate = selectedDay
+    ? `${selectedDay.getFullYear()}-${String(selectedDay.getMonth() + 1).padStart(2, "0")}-${String(selectedDay.getDate()).padStart(2, "0")}`
+    : "";
 
   const canSubmit =
     cartItems.length > 0 &&
     name.trim() !== "" &&
     isValidSgPhone(contact) &&
-    deliveryDate !== "" &&
-    isAllowedDay(deliveryDate) &&
+    selectedDay !== undefined &&
     (!isDelivery || address.trim() !== "") &&
     file !== null &&
     !submitting;
@@ -313,22 +308,18 @@ export default function OrderPage() {
               <label className="block text-sm font-medium text-stone-600 mb-1">
                 Preferred {isDelivery ? "Delivery" : "Pickup"} Date
               </label>
-              <input
-                type="date"
-                value={deliveryDate}
-                min={minDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                required
-                className="w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
-              />
-              <p className="text-xs text-stone-400 mt-1">
-                Available on Mon, Sat &amp; Sun only · Earliest: {minDate}
-              </p>
-              {deliveryDate !== "" && !isAllowedDay(deliveryDate) && (
-                <p className="text-xs text-red-500 mt-1">
-                  Please choose a Monday, Saturday, or Sunday
-                </p>
-              )}
+              <div className="border border-stone-300 rounded-xl overflow-hidden">
+                <Calendar
+                  mode="single"
+                  selected={selectedDay}
+                  onSelect={setSelectedDay}
+                  disabled={[{ dayOfWeek: [2, 3, 4, 5] }, { before: minDate }]}
+                  startMonth={minDate}
+                  className="[--cell-size:--spacing(4)] p-1"
+                  classNames={{ root: "w-full" }}
+                />
+              </div>
+              <p className="text-xs text-stone-400 mt-1">Available on Mon, Sat &amp; Sun only</p>
             </div>
             {isDelivery && (
               <div>

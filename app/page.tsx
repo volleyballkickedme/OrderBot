@@ -20,6 +20,11 @@ function isValidSgPhone(val: string) {
   return /^(\+65)?[689]\d{7}$/.test(val.trim().replace(/\s/g, ""));
 }
 
+function isAllowedDay(dateStr: string) {
+  const day = new Date(dateStr).getDay();
+  return day === 0 || day === 1 || day === 6; // Sun, Mon, Sat
+}
+
 
 function buildCartItems(quantities: QuantityMap): CartItem[] {
   const items: CartItem[] = [];

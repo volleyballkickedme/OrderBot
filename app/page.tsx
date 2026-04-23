@@ -313,7 +313,7 @@ export default function OrderPage() {
               <label className="block text-sm font-medium text-stone-600 mb-1">
                 Preferred {isDelivery ? "Delivery" : "Pickup"} Date
               </label>
-              <div className="border border-stone-300 rounded-xl">
+              <div className="border border-stone-300 rounded-xl overflow-visible">
                 <Calendar
                   mode="single"
                   selected={selectedDay}

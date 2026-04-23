@@ -313,14 +313,13 @@ export default function OrderPage() {
               <label className="block text-sm font-medium text-stone-600 mb-1">
                 Preferred {isDelivery ? "Delivery" : "Pickup"} Date
               </label>
-              <div className="border border-stone-300 rounded-xl">
+              <div className="border border-stone-300 rounded-xl overflow-hidden">
                 <Calendar
                   mode="single"
                   selected={selectedDay}
                   onSelect={setSelectedDay}
                   disabled={[{ dayOfWeek: [2, 3, 4, 5] }, { before: minDate }]}
                   startMonth={minDate}
-                  className="[--cell-size:--spacing(4)] p-1"
                   classNames={{ root: "w-full" }}
                 />
               </div>

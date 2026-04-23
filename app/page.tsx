@@ -309,11 +309,11 @@ export default function OrderPage() {
                 </p>
               )}
             </div>
-            <div>
+            <div style={{ display: "flex", flexDirection: "column"}}>
               <label className="block text-sm font-medium text-stone-600 mb-1">
                 Preferred {isDelivery ? "Delivery" : "Pickup"} Date
               </label>
-              <div className="border border-stone-300 rounded-xl overflow-hidden">
+              <div className="border border-stone-300 rounded-xl">
                 <Calendar
                   mode="single"
                   selected={selectedDay}

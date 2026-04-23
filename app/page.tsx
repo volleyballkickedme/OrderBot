@@ -320,6 +320,7 @@ export default function OrderPage() {
                   onSelect={setSelectedDay}
                   disabled={[{ dayOfWeek: [2, 3, 4, 5] }, { before: minDate }]}
                   startMonth={minDate}
+                  weekStartsOn={1}
                   classNames={{ root: "w-full" }}
                 />
               </div>

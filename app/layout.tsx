@@ -8,6 +8,10 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 export const metadata: Metadata = {
   title: "Simply Sourdough",
   description: "Place your artisan bread order",
+  icons: {
+    icon: [{ url: "/SD_icon.jpeg", type: "image/jpeg" }],
+    shortcut: "/SD_icon.jpeg",
+  },
 };
 
 export default function RootLayout({

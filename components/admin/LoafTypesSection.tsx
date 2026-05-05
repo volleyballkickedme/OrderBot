@@ -14,9 +14,12 @@ const inputClass =
 
 interface LoafTypesSectionProps {
   initialLoafTypes: DbLoafType[];
+  onAdd?: (item: DbLoafType) => void;
+  onUpdate?: (item: DbLoafType) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function LoafTypesSection({ initialLoafTypes }: LoafTypesSectionProps) {
+export function LoafTypesSection({ initialLoafTypes, onAdd, onUpdate, onDelete: onDeleteProp }: LoafTypesSectionProps) {
   const supabase = createClient();
   const [loafTypes, setLoafTypes] = useState<DbLoafType[]>(initialLoafTypes);
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
@@ -54,15 +57,18 @@ export function LoafTypesSection({ initialLoafTypes }: LoafTypesSectionProps) {
         .single();
       if (error) { setError(error.message); setSaving(false); return; }
       setLoafTypes((prev) => [...prev, data]);
+      onAdd?.(data);
     } else if (modalMode === "edit" && editingItem) {
       const { error } = await supabase
         .from("loaf_types")
         .update({ loaf_name: formName.trim() })
         .eq("id", editingItem.id);
       if (error) { setError(error.message); setSaving(false); return; }
+      const updated = { ...editingItem, loaf_name: formName.trim() };
       setLoafTypes((prev) =>
-        prev.map((lt) => (lt.id === editingItem.id ? { ...lt, loaf_name: formName.trim() } : lt))
+        prev.map((lt) => (lt.id === editingItem.id ? updated : lt))
       );
+      onUpdate?.(updated);
     }
 
     setSaving(false);
@@ -78,6 +84,7 @@ export function LoafTypesSection({ initialLoafTypes }: LoafTypesSectionProps) {
       .eq("id", deleteTarget.id);
     if (!error) {
       setLoafTypes((prev) => prev.filter((lt) => lt.id !== deleteTarget.id));
+      onDeleteProp?.(deleteTarget.id);
     }
     setDeleting(false);
     setDeleteTarget(null);

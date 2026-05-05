@@ -14,9 +14,12 @@ const inputClass =
 
 interface CategoriesSectionProps {
   initialCategories: DbCategory[];
+  onAdd?: (item: DbCategory) => void;
+  onUpdate?: (item: DbCategory) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function CategoriesSection({ initialCategories }: CategoriesSectionProps) {
+export function CategoriesSection({ initialCategories, onAdd, onUpdate, onDelete: onDeleteProp }: CategoriesSectionProps) {
   const supabase = createClient();
   const [categories, setCategories] = useState<DbCategory[]>(initialCategories);
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
@@ -54,15 +57,18 @@ export function CategoriesSection({ initialCategories }: CategoriesSectionProps)
         .single();
       if (error) { setError(error.message); setSaving(false); return; }
       setCategories((prev) => [...prev, data]);
+      onAdd?.(data);
     } else if (modalMode === "edit" && editingItem) {
       const { error } = await supabase
         .from("item_categories")
         .update({ category_name: formName.trim() })
         .eq("id", editingItem.id);
       if (error) { setError(error.message); setSaving(false); return; }
+      const updated = { ...editingItem, category_name: formName.trim() };
       setCategories((prev) =>
-        prev.map((c) => (c.id === editingItem.id ? { ...c, category_name: formName.trim() } : c))
+        prev.map((c) => (c.id === editingItem.id ? updated : c))
       );
+      onUpdate?.(updated);
     }
 
     setSaving(false);
@@ -78,6 +84,7 @@ export function CategoriesSection({ initialCategories }: CategoriesSectionProps)
       .eq("id", deleteTarget.id);
     if (!error) {
       setCategories((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      onDeleteProp?.(deleteTarget.id);
     }
     setDeleting(false);
     setDeleteTarget(null);

@@ -1,7 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { CategoriesSection } from "@/components/admin/CategoriesSection";
-import { LoafTypesSection } from "@/components/admin/LoafTypesSection";
-import { MenuItemsSection } from "@/components/admin/MenuItemsSection";
+import { AdminPageClient } from "@/components/admin/AdminPageClient";
 import type { DbCategory, DbLoafType, DbMenuItemWithJoins } from "@/utils/supabase/types";
 
 export default async function AdminPage() {
@@ -17,14 +15,10 @@ export default async function AdminPage() {
     ]);
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8 space-y-6">
-      <CategoriesSection initialCategories={(categories as DbCategory[]) ?? []} />
-      <LoafTypesSection initialLoafTypes={(loafTypes as DbLoafType[]) ?? []} />
-      <MenuItemsSection
-        initialMenuItems={(menuItems as DbMenuItemWithJoins[]) ?? []}
-        categories={(categories as DbCategory[]) ?? []}
-        loafTypes={(loafTypes as DbLoafType[]) ?? []}
-      />
-    </main>
+    <AdminPageClient
+      initialCategories={(categories as DbCategory[]) ?? []}
+      initialLoafTypes={(loafTypes as DbLoafType[]) ?? []}
+      initialMenuItems={(menuItems as DbMenuItemWithJoins[]) ?? []}
+    />
   );
 }

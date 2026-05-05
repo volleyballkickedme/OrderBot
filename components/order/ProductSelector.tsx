@@ -44,7 +44,7 @@ export function ProductSelector({
         />
       )}
 
-      {category.flavourGroups.map((flavourGroup) => (
+      {[...category.flavourGroups].sort((a, b) => Math.min(...a.loafOptions.map(o => o.price)) - Math.min(...b.loafOptions.map(o => o.price))).map((flavourGroup) => (
         <ProductItem
           key={flavourGroup.flavour}
           flavourGroup={flavourGroup}

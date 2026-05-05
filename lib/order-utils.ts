@@ -1,4 +1,4 @@
-import { LOAF_TYPES, FLAVOURS, type CartItem } from "@/lib/config";
+import { PRODUCT_CATEGORIES, type CartItem } from "@/lib/config";
 
 export type QuantityMap = Record<string, number>;
 
@@ -17,17 +17,19 @@ export function isAllowedDay(dateStr: string) {
 
 export function buildCartItems(quantities: QuantityMap): CartItem[] {
   const items: CartItem[] = [];
-  for (const loaf of LOAF_TYPES) {
-    for (const flavour of FLAVOURS) {
-      const qty = quantities[cartKey(loaf.id, flavour)] ?? 0;
-      if (qty > 0) {
-        items.push({
-          loafId: loaf.id,
-          loafLabel: loaf.label,
-          flavour,
-          qty,
-          unitPrice: loaf.price,
-        });
+  for (const category of PRODUCT_CATEGORIES) {
+    for (const item of category.items) {
+      for (const flavour of category.flavours) {
+        const qty = quantities[cartKey(item.id, flavour)] ?? 0;
+        if (qty > 0) {
+          items.push({
+            loafId: item.id,
+            loafLabel: item.label,
+            flavour,
+            qty,
+            unitPrice: item.price,
+          });
+        }
       }
     }
   }

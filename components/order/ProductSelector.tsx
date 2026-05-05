@@ -1,6 +1,10 @@
-import { LOAF_TYPES, FLAVOURS, type CartItem } from "@/lib/config";
+"use client";
+
+import { useState } from "react";
+import { PRODUCT_CATEGORIES, type CategoryId, type CartItem } from "@/lib/config";
 import { cartKey, type QuantityMap } from "@/lib/order-utils";
 import { FlavourRow } from "./FlavourRow";
+import { cn } from "@/lib/utils";
 
 interface ProductSelectorProps {
   quantities: QuantityMap;
@@ -9,25 +13,48 @@ interface ProductSelectorProps {
 }
 
 export function ProductSelector({ quantities, onChangeQty, cartItems }: ProductSelectorProps) {
+  const [activeCategory, setActiveCategory] = useState<CategoryId>(PRODUCT_CATEGORIES[0].id);
+
+  const category = PRODUCT_CATEGORIES.find((c) => c.id === activeCategory)!;
+
   return (
     <section className="bg-white rounded-2xl shadow-sm p-5">
-      <h2 className="text-lg font-semibold text-amber-900 mb-4">Select Your Bread</h2>
-      {LOAF_TYPES.map((loaf) => (
-        <div key={loaf.id} className="mb-5">
+      {PRODUCT_CATEGORIES.length > 1 && (
+        <div className="flex gap-1 mb-5 bg-amber-50 rounded-xl p-1">
+          {PRODUCT_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setActiveCategory(cat.id)}
+              className={cn(
+                "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
+                activeCategory === cat.id
+                  ? "bg-white text-amber-900 shadow-sm"
+                  : "text-stone-500 hover:text-stone-700"
+              )}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {category.items.map((item) => (
+        <div key={item.id} className="mb-5">
           <h3 className="font-bold text-lg text-stone-700 mb-2">
-            {loaf.label}{" "}
-            <span className="text-amber-700 font-normal">${loaf.price}</span>
+            {item.label}{" "}
+            <span className="text-amber-700 font-normal">${item.price}</span>
           </h3>
           <div className="space-y-2">
-            {FLAVOURS.map((flavour) => {
-              const qty = quantities[cartKey(loaf.id, flavour)] ?? 0;
+            {category.flavours.map((flavour) => {
+              const qty = quantities[cartKey(item.id, flavour)] ?? 0;
               return (
                 <FlavourRow
                   key={flavour}
                   flavour={flavour}
                   qty={qty}
-                  onDecrement={() => onChangeQty(loaf.id, flavour, -1)}
-                  onIncrement={() => onChangeQty(loaf.id, flavour, 1)}
+                  onDecrement={() => onChangeQty(item.id, flavour, -1)}
+                  onIncrement={() => onChangeQty(item.id, flavour, 1)}
                 />
               );
             })}

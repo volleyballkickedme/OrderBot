@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil, Minus, Plus } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AdminModal } from "./AdminModal";
-import { AdminItemRow } from "./AdminItemRow";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import type { DbCategory, DbLoafType, DbMenuItemWithJoins } from "@/utils/supabase/types";
 
@@ -35,6 +34,19 @@ const emptyForm = (categories: DbCategory[], loafTypes: DbLoafType[]): FormState
   price: "",
 });
 
+function groupByFlavour(items: DbMenuItemWithJoins[]) {
+  const groups: { flavour: string; items: DbMenuItemWithJoins[] }[] = [];
+  for (const item of items) {
+    const group = groups.find((g) => g.flavour === item.flavour);
+    if (group) {
+      group.items.push(item);
+    } else {
+      groups.push({ flavour: item.flavour, items: [item] });
+    }
+  }
+  return groups;
+}
+
 export function MenuItemsSection({
   initialMenuItems,
   categories,
@@ -42,83 +54,104 @@ export function MenuItemsSection({
 }: MenuItemsSectionProps) {
   const supabase = createClient();
   const [menuItems, setMenuItems] = useState<DbMenuItemWithJoins[]>(initialMenuItems);
-  const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editingItem, setEditingItem] = useState<DbMenuItemWithJoins | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<DbMenuItemWithJoins | null>(null);
-  const [form, setForm] = useState<FormState>(emptyForm(categories, loafTypes));
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  function openCreate() {
-    setForm(emptyForm(categories, loafTypes));
-    setEditingItem(null);
-    setError(null);
-    setModalMode("create");
-  }
+  // Inline editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<FormState>(emptyForm(categories, loafTypes));
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Creation modal state
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<FormState>(emptyForm(categories, loafTypes));
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Delete state
+  const [deleteTarget, setDeleteTarget] = useState<DbMenuItemWithJoins | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function openEdit(item: DbMenuItemWithJoins) {
-    setForm({
+    setEditingId(item.id);
+    setEditForm({
       category_id: item.category_id,
       loaf_type_id: item.loaf_type_id,
       flavour: item.flavour,
       price: String(item.price),
     });
-    setEditingItem(item);
-    setError(null);
-    setModalMode("edit");
+    setEditError(null);
   }
 
-  function itemLabel(item: DbMenuItemWithJoins) {
-    const loafName = item.loaf_types?.loaf_name ?? item.loaf_type_id;
-    const catName = item.item_categories?.category_name ?? "";
-    return `${item.flavour} · ${loafName} · $${Number(item.price).toFixed(2)}${catName ? ` · ${catName}` : ""}`;
+  function cancelEdit() {
+    setEditingId(null);
+    setEditError(null);
   }
 
   async function handleSave() {
-    if (!form.flavour.trim() || !form.price || !form.category_id || !form.loaf_type_id) return;
+    if (!editingId) return;
+    const { flavour, price, category_id, loaf_type_id } = editForm;
+    if (!flavour.trim() || !price || !category_id || !loaf_type_id) return;
     setSaving(true);
-    setError(null);
+    setEditError(null);
 
     const payload = {
-      category_id: form.category_id,
-      loaf_type_id: form.loaf_type_id,
-      flavour: form.flavour.trim(),
-      price: parseFloat(form.price),
+      category_id,
+      loaf_type_id,
+      flavour: flavour.trim(),
+      price: parseFloat(price),
     };
 
-    if (modalMode === "create") {
-      const { data, error } = await supabase
-        .from("menu_items")
-        .insert(payload)
-        .select("*, loaf_types(loaf_name), item_categories(category_name)")
-        .single();
-      if (error) { setError(error.message); setSaving(false); return; }
-      setMenuItems((prev) => [...prev, data]);
-    } else if (modalMode === "edit" && editingItem) {
-      const { data, error } = await supabase
-        .from("menu_items")
-        .update(payload)
-        .eq("id", editingItem.id)
-        .select("*, loaf_types(loaf_name), item_categories(category_name)")
-        .single();
-      if (error) { setError(error.message); setSaving(false); return; }
-      setMenuItems((prev) =>
-        prev.map((m) => (m.id === editingItem.id ? data : m))
-      );
+    const { data, error } = await supabase
+      .from("menu_items")
+      .update(payload)
+      .eq("id", editingId)
+      .select("*, loaf_types(loaf_name), item_categories(category_name)")
+      .single();
+
+    if (error) {
+      setEditError(error.message);
+      setSaving(false);
+      return;
     }
 
+    setMenuItems((prev) => prev.map((m) => (m.id === editingId ? data : m)));
     setSaving(false);
-    setModalMode(null);
+    setEditingId(null);
+  }
+
+  function openCreate() {
+    setCreateForm(emptyForm(categories, loafTypes));
+    setCreateError(null);
+    setCreateModalOpen(true);
+  }
+
+  async function handleCreate() {
+    const { flavour, price, category_id, loaf_type_id } = createForm;
+    if (!flavour.trim() || !price || !category_id || !loaf_type_id) return;
+    setCreating(true);
+    setCreateError(null);
+
+    const { data, error } = await supabase
+      .from("menu_items")
+      .insert({ category_id, loaf_type_id, flavour: flavour.trim(), price: parseFloat(price) })
+      .select("*, loaf_types(loaf_name), item_categories(category_name)")
+      .single();
+
+    if (error) {
+      setCreateError(error.message);
+      setCreating(false);
+      return;
+    }
+
+    setMenuItems((prev) => [...prev, data]);
+    setCreating(false);
+    setCreateModalOpen(false);
   }
 
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
-    const { error } = await supabase
-      .from("menu_items")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await supabase.from("menu_items").delete().eq("id", deleteTarget.id);
     if (!error) {
       setMenuItems((prev) => prev.filter((m) => m.id !== deleteTarget.id));
     }
@@ -126,12 +159,21 @@ export function MenuItemsSection({
     setDeleteTarget(null);
   }
 
-  const isFormValid =
-    form.flavour.trim() !== "" &&
-    form.price !== "" &&
-    !isNaN(parseFloat(form.price)) &&
-    form.category_id !== "" &&
-    form.loaf_type_id !== "";
+  const isEditFormValid =
+    editForm.flavour.trim() !== "" &&
+    editForm.price !== "" &&
+    !isNaN(parseFloat(editForm.price)) &&
+    editForm.category_id !== "" &&
+    editForm.loaf_type_id !== "";
+
+  const isCreateFormValid =
+    createForm.flavour.trim() !== "" &&
+    createForm.price !== "" &&
+    !isNaN(parseFloat(createForm.price)) &&
+    createForm.category_id !== "" &&
+    createForm.loaf_type_id !== "";
+
+  const groups = groupByFlavour(menuItems);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-5">
@@ -143,89 +185,182 @@ export function MenuItemsSection({
         </Button>
       </div>
 
-      {menuItems.length === 0 && (
+      {groups.length === 0 && (
         <p className="text-sm text-stone-400 py-2">No menu items yet.</p>
       )}
-      {menuItems.map((item) => (
-        <AdminItemRow
-          key={item.id}
-          label={itemLabel(item)}
-          onEdit={() => openEdit(item)}
-          onDelete={() => setDeleteTarget(item)}
-        />
-      ))}
+
+      {groups.map((group) => {
+        const lowestPrice = Math.min(...group.items.map((i) => i.price));
+        return (
+          <div key={group.flavour} className="mb-5 last:mb-0">
+            <h3 className="font-bold text-lg text-stone-700 mb-2">
+              {group.flavour}{" "}
+              <span className="text-amber-700 font-normal">${lowestPrice.toFixed(2)}</span>
+            </h3>
+            <div>
+              {group.items.map((item) =>
+                editingId === item.id ? (
+                  <div
+                    key={item.id}
+                    className="py-3 border-b border-amber-100 last:border-0 space-y-2"
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-stone-500 mb-1">Flavour</label>
+                        <input
+                          type="text"
+                          value={editForm.flavour}
+                          onChange={(e) => setEditForm((f) => ({ ...f, flavour: e.target.value }))}
+                          className={inputClass}
+                          placeholder="e.g. Plain"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-500 mb-1">Price ($)</label>
+                        <input
+                          type="number"
+                          value={editForm.price}
+                          onChange={(e) => setEditForm((f) => ({ ...f, price: e.target.value }))}
+                          className={inputClass}
+                          placeholder="e.g. 14.00"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-stone-500 mb-1">Loaf Type</label>
+                        <select
+                          value={editForm.loaf_type_id}
+                          onChange={(e) => setEditForm((f) => ({ ...f, loaf_type_id: e.target.value }))}
+                          className={selectClass}
+                        >
+                          {loafTypes.map((lt) => (
+                            <option key={lt.id} value={lt.id}>{lt.loaf_name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-500 mb-1">Category</label>
+                        <select
+                          value={editForm.category_id}
+                          onChange={(e) => setEditForm((f) => ({ ...f, category_id: e.target.value }))}
+                          className={selectClass}
+                        >
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>{c.category_name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {editError && <p className="text-sm text-red-600">{editError}</p>}
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={cancelEdit} disabled={saving}>
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={handleSave} disabled={saving || !isEditFormValid}>
+                        {saving ? "Saving…" : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0"
+                  >
+                    <span className="text-stone-600 text-sm flex-1">
+                      {item.loaf_types?.loaf_name}
+                      {item.item_categories?.category_name
+                        ? ` · ${item.item_categories.category_name}`
+                        : ""}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => openEdit(item)}
+                        aria-label="Edit"
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setDeleteTarget(item)}
+                        aria-label="Delete"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                      >
+                        <Minus />
+                      </Button>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        );
+      })}
 
       <AdminModal
-        open={modalMode !== null}
-        onOpenChange={(open) => !open && setModalMode(null)}
-        title={modalMode === "create" ? "Add Menu Item" : "Edit Menu Item"}
+        open={createModalOpen}
+        onOpenChange={(open) => !open && setCreateModalOpen(false)}
+        title="Add Menu Item"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1.5">
-              Category
-            </label>
+            <label className="block text-sm font-medium text-stone-600 mb-1.5">Category</label>
             <select
-              value={form.category_id}
-              onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+              value={createForm.category_id}
+              onChange={(e) => setCreateForm((f) => ({ ...f, category_id: e.target.value }))}
               className={selectClass}
             >
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.category_name}
-                </option>
+                <option key={c.id} value={c.id}>{c.category_name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1.5">
-              Loaf Type
-            </label>
+            <label className="block text-sm font-medium text-stone-600 mb-1.5">Loaf Type</label>
             <select
-              value={form.loaf_type_id}
-              onChange={(e) => setForm((f) => ({ ...f, loaf_type_id: e.target.value }))}
+              value={createForm.loaf_type_id}
+              onChange={(e) => setCreateForm((f) => ({ ...f, loaf_type_id: e.target.value }))}
               className={selectClass}
             >
               {loafTypes.map((lt) => (
-                <option key={lt.id} value={lt.id}>
-                  {lt.loaf_name}
-                </option>
+                <option key={lt.id} value={lt.id}>{lt.loaf_name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1.5">
-              Flavour (bread variant)
-            </label>
+            <label className="block text-sm font-medium text-stone-600 mb-1.5">Flavour</label>
             <input
               type="text"
-              value={form.flavour}
-              onChange={(e) => setForm((f) => ({ ...f, flavour: e.target.value }))}
+              value={createForm.flavour}
+              onChange={(e) => setCreateForm((f) => ({ ...f, flavour: e.target.value }))}
               className={inputClass}
               placeholder="e.g. Plain"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-stone-600 mb-1.5">
-              Price ($)
-            </label>
+            <label className="block text-sm font-medium text-stone-600 mb-1.5">Price ($)</label>
             <input
               type="number"
-              value={form.price}
-              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+              value={createForm.price}
+              onChange={(e) => setCreateForm((f) => ({ ...f, price: e.target.value }))}
               className={inputClass}
               placeholder="e.g. 14.00"
               min="0"
               step="0.01"
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {createError && <p className="text-sm text-red-600">{createError}</p>}
           <div className="flex justify-end gap-3 pt-1">
-            <Button variant="outline" onClick={() => setModalMode(null)} disabled={saving}>
+            <Button variant="outline" onClick={() => setCreateModalOpen(false)} disabled={creating}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={saving || !isFormValid}>
-              {saving ? "Saving…" : "Save"}
+            <Button onClick={handleCreate} disabled={creating || !isCreateFormValid}>
+              {creating ? "Saving…" : "Save"}
             </Button>
           </div>
         </div>
@@ -234,7 +369,11 @@ export function MenuItemsSection({
       <DeleteConfirmModal
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        itemName={deleteTarget ? itemLabel(deleteTarget) : ""}
+        itemName={
+          deleteTarget
+            ? `${deleteTarget.flavour} · ${deleteTarget.loaf_types?.loaf_name ?? ""}`
+            : ""
+        }
         onConfirm={handleDelete}
         loading={deleting}
       />

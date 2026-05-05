@@ -1,37 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { PRODUCT_CATEGORIES, type CategoryId, type CartItem } from "@/lib/config";
 import { cartKey, type QuantityMap } from "@/lib/order-utils";
 import { ProductItem } from "./ProductItem";
 import { CategoryTabBar } from "./CategoryTabBar";
+import type { CartItem } from "@/lib/config";
+import type { CategoryGroup } from "@/utils/supabase/types";
 
 interface ProductSelectorProps {
+  categoryGroups: CategoryGroup[];
   quantities: QuantityMap;
-  onChangeQty: (loafId: string, flavour: string, delta: number) => void;
+  onChangeQty: (menuItemId: string, loafName: string, delta: number) => void;
   cartItems: CartItem[];
 }
 
-export function ProductSelector({ quantities, onChangeQty, cartItems }: ProductSelectorProps) {
-  const [activeCategory, setActiveCategory] = useState<CategoryId>(PRODUCT_CATEGORIES[0].id);
+export function ProductSelector({
+  categoryGroups,
+  quantities,
+  onChangeQty,
+  cartItems,
+}: ProductSelectorProps) {
+  const [activeCategory, setActiveCategory] = useState<string>(
+    categoryGroups[0]?.id ?? ""
+  );
 
-  const category = PRODUCT_CATEGORIES.find((c) => c.id === activeCategory)!;
+  const category = categoryGroups.find((c) => c.id === activeCategory) ?? categoryGroups[0];
+
+  if (!category) {
+    return (
+      <section className="bg-white rounded-2xl shadow-sm p-5">
+        <p className="text-stone-400 text-sm text-center py-4">No items available.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-white rounded-2xl shadow-sm p-5">
-      {PRODUCT_CATEGORIES.length > 1 && (
+      {categoryGroups.length > 1 && (
         <CategoryTabBar
-          categories={PRODUCT_CATEGORIES}
+          categories={categoryGroups.map((g) => ({ id: g.id, label: g.label }))}
           activeCategory={activeCategory}
           onSelect={setActiveCategory}
         />
       )}
 
-      {category.items.map((item) => (
+      {category.flavourGroups.map((flavourGroup) => (
         <ProductItem
-          key={item.id}
-          item={item}
-          flavours={category.flavours}
+          key={flavourGroup.flavour}
+          flavourGroup={flavourGroup}
           quantities={quantities}
           onChangeQty={onChangeQty}
         />

@@ -17,6 +17,76 @@ export const PRODUCT_CATEGORIES = [
     ],
     flavours: ["Rustic Loaf", "Sandwich Loaf"],
   },
+  // {
+  //   id: "cake",
+  //   label: "Test Cakes",
+  //   items: [
+  //     { id: "vanilla", label: "Vanilla", price: 8 },
+  //     { id: "chocolate", label: "Chocolate", price: 9 },
+  //     { id: "matcha", label: "Matcha", price: 10 },
+  //   ],
+  //   flavours: ["Regular", "Mini"],
+  // },
+  // {
+  //   id: "cookies",
+  //   label: "Test Cookies",
+  //   items: [
+  //     { id: "butter", label: "Butter", price: 5 },
+  //     { id: "oatmeal", label: "Oatmeal", price: 6 },
+  //     { id: "chocochip", label: "Chocolate Chip", price: 6 },
+  //   ],
+  //   flavours: ["Classic", "Premium"],
+  // },
+  // {
+  //   id: "muffins",
+  //   label: "Test Muffins",
+  //   items: [
+  //     { id: "blueberry", label: "Blueberry", price: 7 },
+  //     { id: "banana", label: "Banana", price: 7 },
+  //     { id: "doublechoc", label: "Double Chocolate", price: 8 },
+  //   ],
+  //   flavours: ["Standard", "Deluxe"],
+  // },
+  // {
+  //   id: "brownies",
+  //   label: "Test Brownies",
+  //   items: [
+  //     { id: "classic", label: "Classic", price: 8 },
+  //     { id: "walnutfudge", label: "Walnut Fudge", price: 9 },
+  //     { id: "saltedcaramel", label: "Salted Caramel", price: 9 },
+  //   ],
+  //   flavours: ["Bite", "Bar"],
+  // },
+  // {
+  //   id: "pastries",
+  //   label: "Test Pastries",
+  //   items: [
+  //     { id: "croissant", label: "Croissant", price: 6 },
+  //     { id: "painauchocolat", label: "Pain au Chocolat", price: 7 },
+  //     { id: "almondtwist", label: "Almond Twist", price: 7 },
+  //   ],
+  //   flavours: ["Fresh", "Buttery"],
+  // },
+  // {
+  //   id: "tarts",
+  //   label: "Test Tarts",
+  //   items: [
+  //     { id: "lemon", label: "Lemon", price: 9 },
+  //     { id: "apple", label: "Apple", price: 9 },
+  //     { id: "berry", label: "Mixed Berry", price: 10 },
+  //   ],
+  //   flavours: ["Single", "Family"],
+  // },
+  // {
+  //   id: "donuts",
+  //   label: "Test Donuts",
+  //   items: [
+  //     { id: "glazed", label: "Glazed", price: 5 },
+  //     { id: "cinnamon", label: "Cinnamon Sugar", price: 6 },
+  //     { id: "strawberry", label: "Strawberry", price: 6 },
+  //   ],
+  //   flavours: ["Ring", "Filled"],
+  // },
 ] as const;
 
 export const DELIVERY_OPTIONS = [

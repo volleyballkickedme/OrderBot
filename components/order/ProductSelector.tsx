@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { PRODUCT_CATEGORIES, type CategoryId, type CartItem } from "@/lib/config";
 import { cartKey, type QuantityMap } from "@/lib/order-utils";
-import { FlavourRow } from "./FlavourRow";
-import { cn } from "@/lib/utils";
+import { ProductItem } from "./ProductItem";
+import { CategoryTabBar } from "./CategoryTabBar";
 
 interface ProductSelectorProps {
   quantities: QuantityMap;
@@ -20,46 +20,21 @@ export function ProductSelector({ quantities, onChangeQty, cartItems }: ProductS
   return (
     <section className="bg-white rounded-2xl shadow-sm p-5">
       {PRODUCT_CATEGORIES.length > 1 && (
-        <div className="flex gap-1 mb-5 bg-amber-50 rounded-xl p-1">
-          {PRODUCT_CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setActiveCategory(cat.id)}
-              className={cn(
-                "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors",
-                activeCategory === cat.id
-                  ? "bg-white text-amber-900 shadow-sm"
-                  : "text-stone-500 hover:text-stone-700"
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
+        <CategoryTabBar
+          categories={PRODUCT_CATEGORIES}
+          activeCategory={activeCategory}
+          onSelect={setActiveCategory}
+        />
       )}
 
       {category.items.map((item) => (
-        <div key={item.id} className="mb-5">
-          <h3 className="font-bold text-lg text-stone-700 mb-2">
-            {item.label}{" "}
-            <span className="text-amber-700 font-normal">${item.price}</span>
-          </h3>
-          <div className="space-y-2">
-            {category.flavours.map((flavour) => {
-              const qty = quantities[cartKey(item.id, flavour)] ?? 0;
-              return (
-                <FlavourRow
-                  key={flavour}
-                  flavour={flavour}
-                  qty={qty}
-                  onDecrement={() => onChangeQty(item.id, flavour, -1)}
-                  onIncrement={() => onChangeQty(item.id, flavour, 1)}
-                />
-              );
-            })}
-          </div>
-        </div>
+        <ProductItem
+          key={item.id}
+          item={item}
+          flavours={category.flavours}
+          quantities={quantities}
+          onChangeQty={onChangeQty}
+        />
       ))}
 
       {cartItems.length > 0 && (

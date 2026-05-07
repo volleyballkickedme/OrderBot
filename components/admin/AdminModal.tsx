@@ -18,7 +18,8 @@ export function AdminModal({ open, onOpenChange, title, children }: AdminModalPr
         <Dialog.Popup
           className={cn(
             "fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-            "w-full max-w-md bg-white rounded-2xl shadow-xl p-6 mx-4"
+            "w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto",
+            "bg-white rounded-2xl shadow-xl p-4 sm:p-6"
           )}
         >
           <Dialog.Title className="text-lg font-semibold text-amber-900 mb-5">

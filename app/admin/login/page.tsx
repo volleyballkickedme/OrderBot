@@ -9,7 +9,7 @@ export default function AdminLoginPage() {
           <h1 className="text-xl font-semibold text-amber-900">Simply Sourdough</h1>
           <p className="text-sm text-stone-500 mt-1">Admin Portal</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm p-8">
+        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
           <AdminLoginForm />
         </div>
       </div>

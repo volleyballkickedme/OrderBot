@@ -63,7 +63,7 @@ export function CustomerInfoForm({
           </p>
         )}
       </div>
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div className="flex flex-col">
         <label className="block text-sm font-medium text-stone-600 mb-1">
           Preferred {isDelivery ? "Delivery" : "Pickup"} Date
         </label>

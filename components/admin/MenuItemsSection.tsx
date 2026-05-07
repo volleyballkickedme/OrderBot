@@ -167,7 +167,7 @@ export function MenuItemsSection({ categoryId, menuItems, variants, onAdd, onUpd
               {group.items.map((item) =>
                 editingId === item.id ? (
                   <div key={item.id} className="py-3 border-b border-amber-100 last:border-0 space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div>
                         <label className="block text-xs font-medium text-stone-500 mb-1">Flavour</label>
                         <input

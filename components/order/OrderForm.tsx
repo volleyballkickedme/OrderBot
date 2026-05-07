@@ -130,7 +130,7 @@ export function OrderForm({ categoryGroups }: OrderFormProps) {
     <main className="min-h-screen bg-amber-50 px-4 py-8">
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-8">
-          <div className="text-4xl mb-2">Simply Sourdough 🍞</div>
+          <div className="text-3xl sm:text-4xl mb-2">Simply Sourdough 🍞</div>
           <p className="text-stone-600 text-sm mt-1">
             (Orders are limited to 12 loaves a week on a first come first serve basis)
           </p>

@@ -32,7 +32,7 @@ export function ProductItem({ flavourGroup, quantities, onChangeQty }: ProductIt
                   type="button"
                   onClick={() => onChangeQty(option.menuItemId, option.loafName, -1)}
                   disabled={qty === 0}
-                  className="w-8 h-8 rounded-full bg-amber-100 text-amber-900 font-bold text-lg flex items-center justify-center disabled:opacity-30 active:bg-amber-200"
+                  className="w-10 h-10 rounded-full bg-amber-100 text-amber-900 font-bold text-lg flex items-center justify-center disabled:opacity-30 active:bg-amber-200"
                 >
                   −
                 </button>
@@ -40,7 +40,7 @@ export function ProductItem({ flavourGroup, quantities, onChangeQty }: ProductIt
                 <button
                   type="button"
                   onClick={() => onChangeQty(option.menuItemId, option.loafName, 1)}
-                  className="w-8 h-8 rounded-full bg-amber-100 text-amber-900 font-bold text-lg flex items-center justify-center active:bg-amber-200"
+                  className="w-10 h-10 rounded-full bg-amber-100 text-amber-900 font-bold text-lg flex items-center justify-center active:bg-amber-200"
                 >
                   +
                 </button>

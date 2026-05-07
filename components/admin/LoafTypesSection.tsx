@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { AdminModal } from "./AdminModal";
 import { AdminItemRow } from "./AdminItemRow";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
-import type { DbVariant } from "@/utils/supabase/types";
+import type { DbVariant, DbMenuItemWithJoins } from "@/utils/supabase/types";
 
 const inputClass =
   "w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-sm";
@@ -15,16 +15,18 @@ const inputClass =
 interface VariantsSectionProps {
   categoryId: string;
   variants: DbVariant[];
+  menuItems: DbMenuItemWithJoins[];
   onAdd: (item: DbVariant) => void;
   onUpdate: (item: DbVariant) => void;
   onDelete: (id: string) => void;
 }
 
-export function LoafTypesSection({ categoryId, variants, onAdd, onUpdate, onDelete }: VariantsSectionProps) {
+export function LoafTypesSection({ categoryId, variants, menuItems, onAdd, onUpdate, onDelete }: VariantsSectionProps) {
   const supabase = createClient();
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [editingItem, setEditingItem] = useState<DbVariant | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DbVariant | null>(null);
+  const [blockReason, setBlockReason] = useState<string | null>(null);
   const [formName, setFormName] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -70,6 +72,17 @@ export function LoafTypesSection({ categoryId, variants, onAdd, onUpdate, onDele
     setModalMode(null);
   }
 
+  function tryDelete(v: DbVariant) {
+    const count = menuItems.filter((m) => m.item_variant_id === v.id).length;
+    if (count > 0) {
+      setBlockReason(
+        `"${v.variant_name}" is used by ${count} menu item${count !== 1 ? "s" : ""}. Remove those items before deleting this variant.`
+      );
+    } else {
+      setDeleteTarget(v);
+    }
+  }
+
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -100,7 +113,7 @@ export function LoafTypesSection({ categoryId, variants, onAdd, onUpdate, onDele
           key={v.id}
           label={v.variant_name}
           onEdit={() => openEdit(v)}
-          onDelete={() => setDeleteTarget(v)}
+          onDelete={() => tryDelete(v)}
         />
       ))}
 
@@ -141,6 +154,17 @@ export function LoafTypesSection({ categoryId, variants, onAdd, onUpdate, onDele
         onConfirm={handleDelete}
         loading={deleting}
       />
+
+      <AdminModal
+        open={blockReason !== null}
+        onOpenChange={(open) => !open && setBlockReason(null)}
+        title="Cannot Delete Variant"
+      >
+        <p className="text-stone-600 mb-5">{blockReason}</p>
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => setBlockReason(null)}>OK</Button>
+        </div>
+      </AdminModal>
     </div>
   );
 }

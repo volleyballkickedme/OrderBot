@@ -37,6 +37,22 @@ export function AdminPageClient({ initialCategories, initialVariants, initialMen
   // Category delete state
   const [deleteCatTarget, setDeleteCatTarget] = useState<DbCategory | null>(null);
   const [deletingCat, setDeletingCat] = useState(false);
+  const [catBlockReason, setCatBlockReason] = useState<string | null>(null);
+
+  function tryDeleteCat(cat: DbCategory) {
+    const itemCount = menuItems.filter((m) => m.category_id === cat.id).length;
+    const variantCount = variants.filter((v) => v.item_category_id === cat.id).length;
+    if (itemCount > 0 || variantCount > 0) {
+      const parts: string[] = [];
+      if (itemCount > 0) parts.push(`${itemCount} menu item${itemCount !== 1 ? "s" : ""}`);
+      if (variantCount > 0) parts.push(`${variantCount} variant${variantCount !== 1 ? "s" : ""}`);
+      setCatBlockReason(
+        `"${cat.category_name}" still has ${parts.join(" and ")}. Remove them before deleting this category.`
+      );
+    } else {
+      setDeleteCatTarget(cat);
+    }
+  }
 
   function openCreateCat() {
     setCatFormName("");
@@ -124,7 +140,7 @@ export function AdminPageClient({ initialCategories, initialVariants, initialMen
                     <Pencil className="size-3" />
                   </button>
                   <button
-                    onClick={() => setDeleteCatTarget(cat)}
+                    onClick={() => tryDeleteCat(cat)}
                     className="p-1 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                     aria-label="Delete category"
                   >
@@ -147,6 +163,7 @@ export function AdminPageClient({ initialCategories, initialVariants, initialMen
           <LoafTypesSection
             categoryId={activeCategory}
             variants={activeVariants}
+            menuItems={activeMenuItems}
             onAdd={(v) => setVariants((prev) => [...prev, v])}
             onUpdate={(v) => setVariants((prev) => prev.map((x) => (x.id === v.id ? v : x)))}
             onDelete={(id) => setVariants((prev) => prev.filter((x) => x.id !== id))}
@@ -201,6 +218,17 @@ export function AdminPageClient({ initialCategories, initialVariants, initialMen
         onConfirm={handleDeleteCat}
         loading={deletingCat}
       />
+
+      <AdminModal
+        open={catBlockReason !== null}
+        onOpenChange={(open) => !open && setCatBlockReason(null)}
+        title="Cannot Delete Category"
+      >
+        <p className="text-stone-600 mb-5">{catBlockReason}</p>
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => setCatBlockReason(null)}>OK</Button>
+        </div>
+      </AdminModal>
     </main>
   );
 }

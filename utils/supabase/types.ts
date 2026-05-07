@@ -3,9 +3,10 @@ export interface DbCategory {
   category_name: string;
 }
 
-export interface DbLoafType {
+export interface DbVariant {
   id: string;
-  loaf_name: string;
+  variant_name: string;
+  item_category_id: string;
 }
 
 export interface DbMenuItem {
@@ -13,16 +14,13 @@ export interface DbMenuItem {
   flavour: string;
   price: number;
   category_id: string;
-  loaf_type_id: string;
+  item_variant_id: string;
 }
 
 export interface DbMenuItemWithJoins extends DbMenuItem {
-  loaf_types: { loaf_name: string } | null;
+  menu_item_variants: { variant_name: string } | null;
   item_categories: { category_name: string } | null;
 }
-
-// Shape consumed by admin sections
-export interface AdminMenuItem extends DbMenuItemWithJoins {}
 
 // Shape consumed by the order form components
 export interface LoafOption {

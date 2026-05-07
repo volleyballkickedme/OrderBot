@@ -7,7 +7,7 @@ export default async function OrderPage() {
 
   const { data: rawMenuItems } = await supabase
     .from("menu_items")
-    .select("*, loaf_types(loaf_name), item_categories(category_name)");
+    .select("*, menu_item_variants(variant_name), item_categories(category_name)");
 
   const categoryGroups = buildCategoryGroups(rawMenuItems ?? []);
 

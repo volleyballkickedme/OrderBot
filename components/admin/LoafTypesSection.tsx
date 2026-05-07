@@ -7,24 +7,24 @@ import { Button } from "@/components/ui/button";
 import { AdminModal } from "./AdminModal";
 import { AdminItemRow } from "./AdminItemRow";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
-import type { DbLoafType } from "@/utils/supabase/types";
+import type { DbVariant } from "@/utils/supabase/types";
 
 const inputClass =
   "w-full border border-stone-300 rounded-xl px-4 py-3 text-stone-700 bg-white focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 text-sm";
 
-interface LoafTypesSectionProps {
-  initialLoafTypes: DbLoafType[];
-  onAdd?: (item: DbLoafType) => void;
-  onUpdate?: (item: DbLoafType) => void;
-  onDelete?: (id: string) => void;
+interface VariantsSectionProps {
+  categoryId: string;
+  variants: DbVariant[];
+  onAdd: (item: DbVariant) => void;
+  onUpdate: (item: DbVariant) => void;
+  onDelete: (id: string) => void;
 }
 
-export function LoafTypesSection({ initialLoafTypes, onAdd, onUpdate, onDelete: onDeleteProp }: LoafTypesSectionProps) {
+export function LoafTypesSection({ categoryId, variants, onAdd, onUpdate, onDelete }: VariantsSectionProps) {
   const supabase = createClient();
-  const [loafTypes, setLoafTypes] = useState<DbLoafType[]>(initialLoafTypes);
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-  const [editingItem, setEditingItem] = useState<DbLoafType | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<DbLoafType | null>(null);
+  const [editingItem, setEditingItem] = useState<DbVariant | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DbVariant | null>(null);
   const [formName, setFormName] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -37,9 +37,9 @@ export function LoafTypesSection({ initialLoafTypes, onAdd, onUpdate, onDelete: 
     setModalMode("create");
   }
 
-  function openEdit(lt: DbLoafType) {
-    setFormName(lt.loaf_name);
-    setEditingItem(lt);
+  function openEdit(v: DbVariant) {
+    setFormName(v.variant_name);
+    setEditingItem(v);
     setError(null);
     setModalMode("edit");
   }
@@ -51,24 +51,19 @@ export function LoafTypesSection({ initialLoafTypes, onAdd, onUpdate, onDelete: 
 
     if (modalMode === "create") {
       const { data, error } = await supabase
-        .from("loaf_types")
-        .insert({ loaf_name: formName.trim() })
+        .from("menu_item_variants")
+        .insert({ variant_name: formName.trim(), item_category_id: categoryId })
         .select()
         .single();
       if (error) { setError(error.message); setSaving(false); return; }
-      setLoafTypes((prev) => [...prev, data]);
-      onAdd?.(data);
+      onAdd(data);
     } else if (modalMode === "edit" && editingItem) {
       const { error } = await supabase
-        .from("loaf_types")
-        .update({ loaf_name: formName.trim() })
+        .from("menu_item_variants")
+        .update({ variant_name: formName.trim() })
         .eq("id", editingItem.id);
       if (error) { setError(error.message); setSaving(false); return; }
-      const updated = { ...editingItem, loaf_name: formName.trim() };
-      setLoafTypes((prev) =>
-        prev.map((lt) => (lt.id === editingItem.id ? updated : lt))
-      );
-      onUpdate?.(updated);
+      onUpdate({ ...editingItem, variant_name: formName.trim() });
     }
 
     setSaving(false);
@@ -79,48 +74,45 @@ export function LoafTypesSection({ initialLoafTypes, onAdd, onUpdate, onDelete: 
     if (!deleteTarget) return;
     setDeleting(true);
     const { error } = await supabase
-      .from("loaf_types")
+      .from("menu_item_variants")
       .delete()
       .eq("id", deleteTarget.id);
-    if (!error) {
-      setLoafTypes((prev) => prev.filter((lt) => lt.id !== deleteTarget.id));
-      onDeleteProp?.(deleteTarget.id);
-    }
+    if (!error) onDelete(deleteTarget.id);
     setDeleting(false);
     setDeleteTarget(null);
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-stone-700">Loaf Types</h2>
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-sm text-stone-500 uppercase tracking-wide">Variants</h3>
         <Button size="sm" onClick={openCreate}>
           <Plus className="size-3.5" />
-          New
+          Add
         </Button>
       </div>
 
-      {loafTypes.length === 0 && (
-        <p className="text-sm text-stone-400 py-2">No loaf types yet.</p>
+      {variants.length === 0 && (
+        <p className="text-sm text-stone-400 py-2">No variants yet.</p>
       )}
-      {loafTypes.map((lt) => (
+      {variants.map((v) => (
         <AdminItemRow
-          key={lt.id}
-          label={lt.loaf_name}
-          onEdit={() => openEdit(lt)}
-          onDelete={() => setDeleteTarget(lt)}
+          key={v.id}
+          label={v.variant_name}
+          onEdit={() => openEdit(v)}
+          onDelete={() => setDeleteTarget(v)}
         />
       ))}
 
       <AdminModal
         open={modalMode !== null}
         onOpenChange={(open) => !open && setModalMode(null)}
-        title={modalMode === "create" ? "Add Loaf Type" : "Edit Loaf Type"}
+        title={modalMode === "create" ? "Add Variant" : "Edit Variant"}
       >
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-stone-600 mb-1.5">
-              Loaf Type Name
+              Variant Name
             </label>
             <input
               type="text"
@@ -145,7 +137,7 @@ export function LoafTypesSection({ initialLoafTypes, onAdd, onUpdate, onDelete: 
       <DeleteConfirmModal
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        itemName={deleteTarget?.loaf_name ?? ""}
+        itemName={deleteTarget?.variant_name ?? ""}
         onConfirm={handleDelete}
         loading={deleting}
       />

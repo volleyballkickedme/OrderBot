@@ -47,8 +47,8 @@ export function buildCategoryGroups(
     flavour: string;
     price: number;
     category_id: string;
-    loaf_type_id: string;
-    loaf_types: { loaf_name: string } | null;
+    item_variant_id: string;
+    menu_item_variants: { variant_name: string } | null;
     item_categories: { category_name: string } | null;
   }>
 ): CategoryGroup[] {
@@ -60,7 +60,7 @@ export function buildCategoryGroups(
   for (const item of rawMenuItems) {
     const catId = item.category_id;
     const catLabel = item.item_categories?.category_name ?? catId;
-    const loafName = item.loaf_types?.loaf_name ?? item.loaf_type_id;
+    const loafName = item.menu_item_variants?.variant_name ?? item.item_variant_id;
 
     if (!categoryMap.has(catId)) {
       categoryMap.set(catId, { label: catLabel, flavourMap: new Map() });

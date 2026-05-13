@@ -91,7 +91,7 @@ pipeline {
             sh """ 
                     curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
                     -d chat_id=${TELEGRAM_CHAT_ID_TEST} \
-                    -d text="Deployment failed at ${env.STAGE_NAME} on \$(date)"
+                    -d text="Deployment failed \$(date)"
                 """
         }
     }

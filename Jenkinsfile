@@ -58,7 +58,7 @@ pipeline {
 
         stage('Approval') {
             when {
-                branch 'main'
+                env.GIT_BRANCH == 'origin/main'
             }
             steps {
                 input(

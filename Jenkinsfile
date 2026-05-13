@@ -82,19 +82,20 @@ pipeline {
 
     post {
         success {
-            sh """ 
-                    curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
-                    -d chat_id=${TELEGRAM_CHAT_ID_TEST} \
-                    -d text="Deployment successful"
-                """
+            withCredentials([
+                string(credentialsId: 'TELEGRAM_BOT_TOKEN', variable: 'BOT_TOKEN'),
+                string(credentialsId: 'TELEGRAM_CHAT_ID_TEST', variable: 'CHAT_ID')
+            ]) {
+                sh 'curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text="Deployment successful"'
+            }
         }
-
         failure {
-            sh """ 
-                    curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
-                    -d chat_id=${TELEGRAM_CHAT_ID_TEST} \
-                    -d text="Deployment failed \$(date)"
-                """
+            withCredentials([
+                string(credentialsId: 'TELEGRAM_BOT_TOKEN', variable: 'BOT_TOKEN'),
+                string(credentialsId: 'TELEGRAM_CHAT_ID_TEST', variable: 'CHAT_ID')
+            ]) {
+                sh 'curl -s -X POST https://api.telegram.org/bot$BOT_TOKEN/sendMessage -d chat_id=$CHAT_ID -d text="Pipeline failed at stage: $STAGE_NAME"'
+            }
         }
     }
 }
